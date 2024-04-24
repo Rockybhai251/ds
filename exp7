@@ -1,0 +1,50 @@
+a = [
+    [0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 1],
+    [1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0]
+]
+flag = 0
+
+def aman(a, i, k):
+    global flag
+    end = 5
+    for x in range(end):
+        if a[k][x] == 1:
+            if i == x:
+                print(f'S{k+1} DEADLOCK DETECTED')
+                flag = 1
+                break
+            print(f'S{k+1} ==> ', end='')
+            aman(a, i, x)
+            print(f' ==> S{x+1} ({i+1}, {k+1}, {x+1}) -------- > ({i+1}, {k+1}, {x+1})')
+
+i = int(input("Enter Initiator Site No.: ")) - 1
+print()
+end = 5
+for j in range(end):
+    for k in range(end):
+        if a[j][k] == 1:
+            print(f'S{j+1} ==> S{k+1} ({i+1}, {j+1}, {k+1}) ==> ', end='')
+            aman(a, j, k)
+            print()
+            
+if flag == 0:
+    print("\nNO DEADLOCK DETECTED")
+
+
+output
+
+
+Enter Initiator Site No.: 3
+
+
+
+S3 ==> S4 (3, 3, 4)
+S4 ==> S1 (3, 4, 1) 
+S1 ==> S2 (3, 1, 2) 
+S2 ==> S3 (3, 2, 3) S2 DEADLOCK DETECTED
+S3 ==> S5 (3,3,5)
+
+
