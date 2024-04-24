@@ -1,0 +1,76 @@
+from multiprocessing import Process, Pipe
+from os import getpid
+from datetime import datetime
+
+def local_time(counter):
+    return ' (LAMPORT_TIME={}, LOCAL_TIME={})'.format(counter, datetime.now())
+
+def calc_recv_timestamp(recv_time_stamp, counter):
+    return max(recv_time_stamp, counter) + 1
+
+def event(pid, counter):
+    counter += 1
+    print('Event happened in {} !'.format(pid) + local_time(counter))
+    return counter
+
+def send_message(pipe, pid, counter):
+    counter += 1
+    pipe.send(('Empty shell', counter))
+    print('Message sent from ' + str(pid) + local_time(counter))
+    return counter
+
+def recv_message(pipe, pid, counter):
+    message, timestamp = pipe.recv()
+    counter = calc_recv_timestamp(timestamp, counter)
+    print('Message received at ' + str(pid) + local_time(counter))
+    return counter
+
+def process_one(pipe12):
+    pid = getpid()
+    counter = 0
+    counter = event(pid, counter)
+    counter = send_message(pipe12, pid, counter)
+    counter = event(pid, counter)
+    counter = recv_message(pipe12, pid, counter)
+    counter = event(pid, counter)
+
+def process_two(pipe21, pipe23):
+    pid = getpid()
+    counter = 0
+    counter = recv_message(pipe21, pid, counter)
+    counter = send_message(pipe21, pid, counter)
+    counter = send_message(pipe23, pid, counter)
+    counter = recv_message(pipe23, pid, counter)
+
+def process_three(pipe32):
+    pid = getpid()
+    counter = 0
+    counter = recv_message(pipe32, pid, counter)
+    counter = send_message(pipe32, pid, counter)
+
+if __name__ == '__main__':
+    oneandtwo, twoandone = Pipe()
+    twoandthree, threeandtwo = Pipe()
+    process1 = Process(target=process_one, args=(oneandtwo,))
+    process2 = Process(target=process_two, args=(twoandone, twoandthree))
+    process3 = Process(target=process_three, args=(threeandtwo,))
+    process1.start()
+    process2.start()
+    process3.start()
+    process1.join()
+    process2.join()
+    process3.join()
+
+output
+
+Message received at 60886 (LAMPORT_TIME=6, LOCAL_TIME=2024-04-24 16:10:02.233117)
+Message sent from 60886 (LAMPORT_TIME=7, LOCAL_TIME=2024-04-24 16:10:02.233381)
+Event happened in 60884 ! (LAMPORT_TIME=1, LOCAL_TIME=2024-04-24 16:10:02.222133)
+Message sent from 60884 (LAMPORT_TIME=2, LOCAL_TIME=2024-04-24 16:10:02.222560)
+Event happened in 60884 ! (LAMPORT_TIME=3, LOCAL_TIME=2024-04-24 16:10:02.222576)
+Message received at 60884 (LAMPORT_TIME=5, LOCAL_TIME=2024-04-24 16:10:02.234424)
+Event happened in 60884 ! (LAMPORT_TIME=6, LOCAL_TIME=2024-04-24 16:10:02.234450)
+Message received at 60885 (LAMPORT_TIME=3, LOCAL_TIME=2024-04-24 16:10:02.232470)
+Message sent from 60885 (LAMPORT_TIME=4, LOCAL_TIME=2024-04-24 16:10:02.232797)
+Message sent from 60885 (LAMPORT_TIME=5, LOCAL_TIME=2024-04-24 16:10:02.232890)
+Message received at 60885 (LAMPORT_TIME=8, LOCAL_TIME=2024-04-24 16:10:02.235243)
