@@ -1,0 +1,31 @@
+import itertools
+
+class LoadBalancer:
+    def __init__(self, servers):
+        self.servers = itertools.cycle(servers)
+
+    def get_server(self):
+        return next(self.servers)
+
+if __name__ == '__main__':
+    servers = ['server1', 'server2', 'server3']
+    lb = LoadBalancer(servers)
+    # simulate 10 requests
+    for i in range(10):
+        server = lb.get_server()
+        print(f"Request {i} handled by {server}")
+
+
+output 
+
+
+Request 0 handled by server1
+Request 1 handled by server2
+Request 2 handled by server3
+Request 3 handled by server1
+Request 4 handled by server2
+Request 5 handled by server3
+Request 6 handled by server1
+Request 7 handled by server2
+Request 8 handled by server3
+Request 9 handled by server1
